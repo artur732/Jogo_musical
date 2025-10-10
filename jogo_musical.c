@@ -6,9 +6,12 @@
 #define SH 1080
 #define SW 1920
 
+float altura_som=0.5;
+
 bool botao(Rectangle retangulo, char *mensagem, Color cor_botao, Color cor_texto, Color encosta);
 int inicial(Texture2D background, Sound fx);
 int regras(Texture2D,Sound fx);
+int ajustes(Texture2D background,Sound fx,float *altura_som);
 
 
 
@@ -34,6 +37,9 @@ int main() {
     //Tocando o som
         PlaySound(fx);
 
+    //Altura do som
+    SetSoundVolume(fx, altura_som);
+
     //variável que define a tela que se encontra o jogo
     int def_tela=0;
 
@@ -51,10 +57,11 @@ int main() {
             def_tela=regras(background, fx);
             break;
         
-        /*case 2:
-            def_tela=ajustes();
+        case 2:
+            def_tela=ajustes(background, fx, &altura_som);
             break;
 
+        /*
         case 3:
             def_tela=iniciar();
             break;
@@ -221,11 +228,60 @@ int main() {
         return tela;
     }
 
-    /*
-    int ajustes() {
+    
+    int ajustes(Texture2D background, Sound fx, float *altura_som) {
 
+        int tela=2;
+
+        if(!IsSoundPlaying(fx)) {
+                PlaySound(fx);
+            }
+        SetSoundVolume(fx, *altura_som);
+
+
+         DrawTexturePro(
+                background,
+                 (Rectangle){ 0, 0, (float)background.width, (float)background.height }, // Parte da imagem que será usada
+                 (Rectangle){ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, // Área da tela onde será desenhado
+                 (Vector2){ 0, 0 }, // Origem
+                 0.0f, // Rotação
+                 WHITE // Cor (sem alteração)
+            );
+
+            char volume[3];
+
+            for(int i=0;i<=3;i++) {
+                volume[i]='\0';
+            }
+            
+            sprintf(volume, "%.2f", 10*(*altura_som));
+            int tamanho_texto=MeasureText("Volume:", 100);
+            int botao_wh=100;
+            int botao_y=(SH/2) - (botao_wh/2);
+
+            DrawText("Volume:", SW/2 - tamanho_texto/2, SH/7, 100, GOLD);
+        
+
+            if(botao((Rectangle){SW/3 - botao_wh/2, botao_y, botao_wh, botao_wh},"-",BLUE, GOLD, PINK) && *altura_som>0) {
+                *altura_som-=0.1;
+            }
+
+            if(botao((Rectangle){SW/2 - (botao_wh+200)/2, botao_y, botao_wh+200, botao_wh},volume,BLUE, GOLD, BLUE)) {
+                //kkkkk
+            }
+
+            if(botao((Rectangle){2*SW/3 - botao_wh/2, botao_y, botao_wh, botao_wh},"+",BLUE, GOLD, PINK) && *altura_som<=1) {
+                *altura_som+=0.1;
+            }
+
+            if(botao((Rectangle){(SW/6 - 300/2),5*SH/6,300, 100},"Voltar", BLUE, GOLD, PINK )) {
+                tela=0;
+            }
+
+            return tela;
     }
 
+    /*
     int iniciar() {
 
     }
