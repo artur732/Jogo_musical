@@ -2,9 +2,12 @@
 #include<stdlib.h>
 #include "raylib.h"
 #include<math.h>
+#include<stdbool.h>
 
 #define SH 1080
 #define SW 1920
+#define MAX_MUSICAS 1
+#define MAX_TEXTO 25
 
 
 bool botao(Rectangle retangulo, char *mensagem, Color cor_botao, Color cor_texto, Color encosta);
@@ -12,13 +15,25 @@ int inicial(Texture2D background, Sound fx);
 int regras(Texture2D,Sound fx);
 int ajustes(Texture2D background,Sound fx,float *altura_som);
 int iniciar(Sound beep, float altura_som);
-int jogo(Texture2D game);
-int errou(Texture2D errada, Sound erou, int *pontuacao, float altura_som);
+int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int tamanho);
+int errou(Texture2D errada, Sound erou, int *pontuacao, float altura_som, bool marcador_ponto);
+int correto(Texture2D joia, Sound acertou, int *pontuacao, float altura_som, bool marcador_ponto);
 
+int reset_int(int variavel, int valor_certo);
+float reset_float(float variavel, float valor_certo);
 
+int SO=0;
 
 
 int main() {
+    
+
+    #ifdef _WIN32
+         SO=1;
+
+    #else 
+        SO=2;
+    #endif
 
     InitWindow(SW, SH, "MUSICAL");
 
@@ -41,16 +56,24 @@ int main() {
     Sound erou = LoadSound("sons/faustao-errou.mp3");
     Sound acertou = LoadSound("sons/faustao-acertou.mp3");
     Sound miseravi = LoadSound("sons/miseravi-acertou.mp3");
+    Sound caneta_azul = LoadSound("sons/caneta_azul.mp3");
     ///
 
     //variável que define a tela que se encontra o jogo
     int def_tela=0, pontuacao=0;
     float altura_som=0.5;
+    bool marcador=true;
+    char *nome_musicas[MAX_TEXTO]={"CANETA AZUL"};
+    Sound sons[MAX_MUSICAS]={caneta_azul};
+
+    char resposta[MAX_TEXTO+1]="";
+    int tamanho_palavra=0;
+
+
+        
 
     //Altura do som
     SetSoundVolume(fx, altura_som);
-
-
 
 
     while(!WindowShouldClose()) 
@@ -77,19 +100,20 @@ int main() {
 
             
         case 4:
-            def_tela=jogo(game);
+            def_tela=jogo(game, nome_musicas, sons, resposta, tamanho_palavra);
             break;
 
             
         case 5:
-            def_tela=errou(errada, erou, &pontuacao, altura_som);
+            def_tela=errou(errada, erou, &pontuacao, altura_som, marcador=true);
+            break;
+
+            
+        case 6:
+            def_tela=correto(joia, acertou, &pontuacao, altura_som, marcador=true);
             break;
 
             /*
-        case 6:
-            def_tela=acertou();
-            break;
-
         case 7:
             def_tela=resultados();
             break;*/
@@ -119,6 +143,7 @@ int main() {
 
     return 0;
 }
+
 
     //função que cria um botão com um texto
     bool botao(Rectangle retangulo, char *mensagem, Color cor_botao, Color cor_texto, Color encosta ) {
@@ -324,6 +349,9 @@ int main() {
 
         if(tempo<=0) {
 
+            ultimo_som=reset_int(ultimo_som, 5);
+            tempo=reset_float(tempo, 4);
+
             tela=4;
         }
 
@@ -331,7 +359,7 @@ int main() {
     }
 
     
-    int jogo(Texture2D game) {
+    int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int tamanho) {
 
         DrawTexturePro(
                 game,
@@ -343,7 +371,7 @@ int main() {
             );
 
         int tela=4, tempo_int=0, tamanho_texto=0;
-        static float tempo=30;
+        static float tempo=10;
         char tempo_texto[8];
 
         tempo-=GetFrameTime();
@@ -358,8 +386,33 @@ int main() {
 
         DrawText("Tempo: ", SW/9 - tamanho_texto/2, SH/12, 100, PINK );
         DrawText(tempo_texto, (SW/9 - tamanho_texto/2) + 400, SH/12, 100, PINK );
+
+
+        int key= GetCharPressed();
+
+
+        while(key>0) {
+            if(tamanho<MAX_TEXTO) {
+
+                resposta[tamanho]=(char)key;
+                tamanho++;
+                resposta[tamanho]='\0';
+            }
+
+            key= GetCharPressed();
+        }
+
+        if (IsKeyPressed(KEY_BACKSPACE) && tamanho > 0) {
+            tamanho--;
+            resposta[tamanho] = '\0';
+        }
+
+        DrawText(resposta, 2*SW/5 ,3*SH/4,100, WHITE);
+
         
         if(tempo<=0) {
+
+            tempo=reset_float(tempo, 30);
 
             tela=5;
         }
@@ -368,7 +421,7 @@ int main() {
     }
 
     
-    int errou(Texture2D errada, Sound erou, int *pontuacao, float altura_som) {
+    int errou(Texture2D errada, Sound erou, int *pontuacao, float altura_som, bool marcador_ponto) {
 
         DrawTexturePro(
                 errada,
@@ -380,13 +433,19 @@ int main() {
             );
 
         SetSoundVolume(erou, altura_som);
-        PlaySound(erou);
-
-        *pontuacao-=10;
+        
         
         int tela=5, tempo_int=0, tamanho_texto=0, pontos=*pontuacao;
         static float tempo=4;
         char tempo_texto[8], pontuacao_texto[8];
+        static int pontuacao_atualizada=1;
+
+        if(pontuacao_atualizada==1) {
+
+            *pontuacao-=10;
+            pontuacao_atualizada=0;
+            PlaySound(erou);
+        }
 
         tempo-=GetFrameTime();
 
@@ -409,17 +468,92 @@ int main() {
         }
         
         if(tempo<=0) {
+
+            tempo=reset_float(tempo, 4.00);
+            pontuacao_atualizada=reset_int(pontuacao_atualizada, 1);
             tela=3;
         }
         
         return tela;
     }
 
-    /*
-    int acertou() {
+    
+    int correto(Texture2D joia, Sound acertou, int *pontuacao, float altura_som, bool marcador_ponto) {
 
+        DrawTexturePro(
+                joia,
+                 (Rectangle){ 0, 0, (float)joia.width, (float)joia.height }, // Parte da imagem que será usada
+                 (Rectangle){ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, // Área da tela onde será desenhado
+                 (Vector2){ 0, 0 }, // Origem
+                 0.0f, // Rotação
+                 WHITE // Cor (sem alteração)
+            );
+
+        SetSoundVolume(acertou, altura_som);
+        
+        int tela=6, tempo_int=0, tamanho_texto=0, pontos=*pontuacao;
+        static float tempo=4;
+        char tempo_texto[8], pontuacao_texto[8];
+        static int pontuacao_atualizada=1;
+
+        if(pontuacao_atualizada==1) {
+
+            *pontuacao+=10;
+            pontuacao_atualizada=0;
+            PlaySound(acertou);
+        }
+
+        tempo-=GetFrameTime();
+
+        pontuacao_texto[0]='\0';
+        tempo_texto[0]='\0';
+
+        tempo_int=(int)ceilf(tempo);
+
+        sprintf(tempo_texto, "%d", tempo_int);
+        sprintf(pontuacao_texto, "%d", *pontuacao);
+
+        tamanho_texto=MeasureText("Pontuação: ", 50);
+
+        if(*pontuacao>0) {
+            DrawText("Pontuação: ", SW/9 - tamanho_texto/2, SH/12, 100, GREEN );
+            DrawText(pontuacao_texto, (SW/9 - tamanho_texto/2) + 600, SH/12, 100, GREEN );
+        } else {
+            DrawText("Pontuação: ", SW/9 - tamanho_texto/2, SH/12, 100, RED );
+            DrawText(pontuacao_texto, (SW/9 - tamanho_texto/2) + 600, SH/12, 100, RED );
+        }
+        
+        if(tempo<=0) {
+
+            tempo=reset_float(tempo, 4.00);
+            pontuacao_atualizada=reset_int(pontuacao_atualizada, 1);
+            tela=3;
+        }
+
+        return tela;
     }
 
+    /*
     int resultados() {
 
     }*/
+
+    int reset_int(int variavel, int valor_certo) {
+
+        if(variavel!= valor_certo) {
+
+            variavel=valor_certo;
+        }
+
+        return variavel;
+    }
+
+    float reset_float(float variavel, float valor_certo) {
+
+        if(variavel!= valor_certo) {
+
+            variavel=valor_certo;
+        }
+
+        return variavel;
+    }
