@@ -9,8 +9,8 @@
 
 #define SH 1080
 #define SW 1920
-#define MAX_MUSICAS 1
-#define MAX_TEXTO 25
+#define MAX_MUSICAS 7
+#define MAX_TEXTO 27
 
 
 bool botao(Rectangle retangulo, char *mensagem, Color cor_botao, Color cor_texto, Color encosta);
@@ -18,7 +18,7 @@ int inicial(Texture2D background, Sound fx);
 int regras(Texture2D,Sound fx);
 int ajustes(Texture2D background,Sound fx,float *altura_som);
 int iniciar(Sound beep, float altura_som);
-int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int *tamanho, int *n_max_de_sons, bool *verdade_momentanea);
+int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int *tamanho, int *n_max_de_sons, bool *verdade_momentanea, float altura_som);
 int errou(Texture2D errada, Sound erou, int *pontuacao, float altura_som, bool marcador_ponto, int *n_max_de_sons);
 int correto(Texture2D joia, Sound acertou, int *pontuacao, float altura_som, bool marcador_ponto, int *n_max_de_sons);
 
@@ -61,18 +61,30 @@ int main() {
     Sound miseravi = LoadSound("sons/miseravi-acertou.mp3");
     Sound sons[MAX_MUSICAS];
     sons[0] = LoadSound("sons/caneta_azul.mp3");
+    sons[1] = LoadSound("sons/descobridor_sete.mp3");
+    sons[2] = LoadSound("sons/ceu_azul.mp3");
+    sons[3] = LoadSound("sons/pelados_em_santos.mp3");
+    sons[4] = LoadSound("sons/o_tempo_n.mp3");
+    sons[5] = LoadSound("sons/highway_to_hell.mp3");
+    sons[6] = LoadSound("sons/anjos.mp3");
     ///
 
     //variável que define a tela que se encontra o jogo
     int def_tela=0, pontuacao=0;
     float altura_som=0.5;
     bool marcador=true;
-    char *nome_musicas[MAX_TEXTO]={"CANETA AZUL"};
+    char *nome_musicas[MAX_TEXTO]={"CANETA AZUL", 
+                                    "DESCOBRIDOR DOS SETE MARES", 
+                                    "CEU AZUL",
+                                    "PELADOS EM SANTOS",
+                                    "O TEMPO NAO PARA",
+                                    "HIGHWAY TO HELL",
+                                    "ANJOS"};
     
 
     char resposta[MAX_TEXTO+1]="\0";
     int tamanho_palavra=0;
-    int n_max_de_sons=1;
+    int n_max_de_sons=7;
     bool verdade_momentanea=true;
 
     srand(time(0));
@@ -105,7 +117,7 @@ int main() {
 
             
         case 4:
-            def_tela=jogo(game, nome_musicas, sons, resposta, &tamanho_palavra, &n_max_de_sons, &verdade_momentanea);
+            def_tela=jogo(game, nome_musicas, sons, resposta, &tamanho_palavra, &n_max_de_sons, &verdade_momentanea, altura_som);
             break;
 
             
@@ -261,12 +273,13 @@ int main() {
             PlaySound(fx);
         }
 
-        DrawText("REGRAS", (SW-largura_texto_1)/2, SH/7, 50, GOLD);
-        DrawText("Uma música irá tocar, você deve ouvir!", (SW-largura_textos)/2, 2*SH/7, 50, GOLD);
-        DrawText("Se souber, aperte ENTER antes que o tempo acabe", (SW-largura_textos)/2, 3*SH/7, 50, GOLD);
-        DrawText("IF acertar: ganha 10 pontos. ELSE: perde 10", (SW-largura_textos)/2, 4*SH/7, 50, GOLD);
-        DrawText("No final, receba sua classificação!", (SW-largura_textos)/2, 5*SH/7, 50, GOLD);
-        DrawText("  Boa sorte! Ass: Artur Silveira :D", (SW-largura_textos)/2, 6*SH/7, 50, GOLD);
+        DrawText("REGRAS", (SW-largura_texto_1)/2, SH/8, 50, GOLD);
+        DrawText("Uma música irá tocar, você deve ouvir!", (SW-largura_textos)/2, 2*SH/8, 50, GOLD);
+        DrawText("Se souber, aperte ENTER antes que o tempo acabe", (SW-largura_textos)/2, 3*SH/8, 50, GOLD);
+        DrawText("IF acertar: ganha 10 pontos. ELSE: perde 10", (SW-largura_textos)/2, 4*SH/8, 50, GOLD);
+        DrawText("No final, receba sua classificação!", (SW-largura_textos)/2, 5*SH/8, 50, GOLD);
+        DrawText("Não utilize acentos!", (SW-largura_textos)/2, 6*SH/8, 50, GOLD);
+        DrawText("  Boa sorte! Ass: Artur Silveira :D", (SW-largura_textos)/2, 7*SH/8, 50, GOLD);
 
         int botao_y=(5*SH)/6;
         int botao_w=300;
@@ -314,7 +327,7 @@ int main() {
             DrawText("Volume:", SW/2 - tamanho_texto/2, SH/7, 100, GOLD);
         
 
-            if(botao((Rectangle){SW/3 - botao_wh/2, botao_y, botao_wh, botao_wh},"-",BLUE, GOLD, PINK) && *altura_som>0) {
+            if(botao((Rectangle){SW/3 - botao_wh/2, botao_y, botao_wh, botao_wh},"-",BLUE, GOLD, PINK) && *altura_som>0.1) {
                 *altura_som-=0.1;
             }
 
@@ -375,7 +388,7 @@ int main() {
     }
 
     
-    int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int *tamanho, int *n_max_de_sons, bool *verdade_momentanea) {
+    int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int *tamanho, int *n_max_de_sons, bool *verdade_momentanea, float altura_som) {
 
         DrawTexturePro(
                 game,
@@ -386,9 +399,10 @@ int main() {
                  WHITE // Cor (sem alteração)
             );
 
-        int tela=4, tempo_int=0, tamanho_texto=0, sorteador=0;
-        static float tempo=30;
+        int tela=4, tempo_int=0, tamanho_texto=0;
+        static float tempo=45;
         char tempo_texto[8];
+        static int sorteador;
 
 
         if(*verdade_momentanea) {
@@ -396,6 +410,8 @@ int main() {
             (*n_max_de_sons)--;
 
             sorteador=rand()%(*n_max_de_sons+1);
+
+            SetSoundVolume(sons[sorteador], altura_som);
     
             PlaySound(sons[sorteador]);
 
@@ -436,18 +452,24 @@ int main() {
             resposta[*tamanho] = '\0';
         }
 
-        DrawText(resposta, 2*SW/5 ,3*SH/4,100, WHITE);
+        DrawText(resposta, SW/10 ,3*SH/4,100, WHITE);
 
         if(SO==1) {
             if(IsKeyPressed(KEY_ENTER) && strnicmp(resposta, nome_musicas[sorteador], *tamanho)==0) {
 
             tempo=reset_float(tempo, 30);
 
+            StopSound(sons[sorteador]);
+
+            sons[sorteador]=sons[*n_max_de_sons];
+
+            nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
             *verdade_momentanea=true;
 
             *tamanho=0;
 
-            resposta="\0";
+            resposta[0]='\0';
 
             tela=6;
 
@@ -457,11 +479,18 @@ int main() {
 
                 tempo=reset_float(tempo, 30);
 
+                StopSound(sons[sorteador]);
+
+                sons[sorteador]=sons[*n_max_de_sons];
+
+                nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
                 *verdade_momentanea=true;
 
                 *tamanho=0;
             
-                resposta="\0";
+                resposta[0]='\0';
+
 
                 tela=5;
             }
@@ -474,11 +503,18 @@ int main() {
 
             tempo=reset_float(tempo, 30);
 
+            StopSound(sons[sorteador]);
+
+            sons[sorteador]=sons[*n_max_de_sons];
+
+            nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
             *verdade_momentanea=true;
 
             *tamanho=0;
             
-            resposta="\0";
+            resposta[0]='\0';
+
 
             tela=6;
 
@@ -488,11 +524,18 @@ int main() {
 
                 tempo=reset_float(tempo, 30);
 
+                StopSound(sons[sorteador]);
+
+                sons[sorteador]=sons[*n_max_de_sons];
+
+                nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
                 *verdade_momentanea=true;
 
                 *tamanho=0;
             
-                resposta="\0";
+                resposta[0]='\0';
+
 
                 tela=5;
             }
@@ -504,11 +547,18 @@ int main() {
 
             tempo=reset_float(tempo, 30);
 
+            StopSound(sons[sorteador]);
+
+            sons[sorteador]=sons[*n_max_de_sons];
+
+            nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
             *verdade_momentanea=true;
 
             *tamanho=0;
             
-            resposta="\0";
+            resposta[0]='\0';
+
 
             tela=5;
         }
@@ -668,3 +718,4 @@ int main() {
 
         return variavel;
     }
+
