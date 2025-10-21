@@ -21,7 +21,7 @@ int iniciar(Sound beep, float altura_som);
 int jogo(Texture2D game, char **nome_musicas, Sound *sons, char *resposta, int *tamanho, int *n_max_de_sons, bool *verdade_momentanea, float altura_som);
 int errou(Texture2D errada, Sound erou, int *pontuacao, float altura_som, bool marcador_ponto, int *n_max_de_sons);
 int correto(Texture2D joia, Sound acertou, int *pontuacao, float altura_som, bool marcador_ponto, int *n_max_de_sons);
-
+int resultados(Texture2D *classificacao, Sound final, int pontuacao, Texture2D background, float altura_som, bool *verdade_momentanea);
 int reset_int(int variavel, int valor_certo);
 float reset_float(float variavel, float valor_certo);
 
@@ -51,6 +51,10 @@ int main() {
     Texture2D game = LoadTexture("imagens/fundo_game.png");
     Texture2D duvida = LoadTexture("imagens/duvida.png");
     Texture2D errada = LoadTexture("imagens/errou.jpg");
+    Texture2D classificacao[3];
+    classificacao[0] = LoadTexture("imagens/semideus.jpg");
+    classificacao[1] = LoadTexture("imagens/mago.jpg");
+    classificacao[2] = LoadTexture("imagens/toicinho.jpg");
     ///
 
     ///Carregando sons
@@ -60,6 +64,7 @@ int main() {
     Sound acertou = LoadSound("sons/faustao-acertou.mp3");
     Sound miseravi = LoadSound("sons/miseravi-acertou.mp3");
     Sound sons[MAX_MUSICAS];
+    Sound final = LoadSound("sons/buttercup.mp3");
     sons[0] = LoadSound("sons/caneta_azul.mp3");
     sons[1] = LoadSound("sons/descobridor_sete.mp3");
     sons[2] = LoadSound("sons/ceu_azul.mp3");
@@ -130,10 +135,9 @@ int main() {
             def_tela=correto(joia, acertou, &pontuacao, altura_som, marcador=true, &n_max_de_sons);
             break;
 
-            /*
         case 7:
-            def_tela=resultados();
-            break;*/
+            def_tela=resultados(classificacao, final, pontuacao, background, altura_som, &verdade_momentanea);
+            break;
         
         default:
             def_tela=inicial(background, fx);
@@ -153,6 +157,9 @@ int main() {
     UnloadTexture(duvida);
     UnloadTexture(game);
     UnloadTexture(errada);
+    for(int i=0;i<3;i++) {
+        UnloadTexture(classificacao[i]);
+    }
 
     
     //descarrega o som
@@ -161,6 +168,7 @@ int main() {
     UnloadSound(acertou);
     UnloadSound(erou);
     UnloadSound(miseravi);
+    UnloadSound(final);
     for (int i = 0; i < MAX_MUSICAS; i++) {
         UnloadSound(sons[i]);
     }
@@ -452,100 +460,114 @@ int main() {
             resposta[*tamanho] = '\0';
         }
 
-        DrawText(resposta, SW/10 ,3*SH/4,100, WHITE);
+        DrawText(resposta, SW/2- MeasureText(resposta, 100)/2 ,3*SH/4,100, WHITE);
 
         if(SO==1) {
-            if(IsKeyPressed(KEY_ENTER) && strnicmp(resposta, nome_musicas[sorteador], *tamanho)==0) {
+            if(IsKeyPressed(KEY_ENTER)) {
+                if(strnicmp(resposta, nome_musicas[sorteador], *tamanho)==0) {
+                    if(resposta[0]!='\0') {
 
-            tempo=reset_float(tempo, 30);
+                        tempo=reset_float(tempo, 45);
 
-            StopSound(sons[sorteador]);
+                        StopSound(sons[sorteador]);
 
-            sons[sorteador]=sons[*n_max_de_sons];
+                        sons[sorteador]=sons[*n_max_de_sons];
 
-            nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+                        nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
 
-            *verdade_momentanea=true;
+                        *verdade_momentanea=true;
 
-            *tamanho=0;
+                        *tamanho=0;
 
-            resposta[0]='\0';
+                        resposta[0]='\0';
 
-            tela=6;
-
+                        tela=6;
+                    }
+                }
             }
 
-            if(IsKeyPressed(KEY_ENTER) && strnicmp(resposta, nome_musicas[sorteador], *tamanho)!=0) {
 
-                tempo=reset_float(tempo, 30);
 
-                StopSound(sons[sorteador]);
 
-                sons[sorteador]=sons[*n_max_de_sons];
+            if(IsKeyPressed(KEY_ENTER)) {
+                if(strnicmp(resposta, nome_musicas[sorteador], *tamanho)!=0) {
 
-                nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+                    tempo=reset_float(tempo, 45);
 
-                *verdade_momentanea=true;
+                    StopSound(sons[sorteador]);
 
-                *tamanho=0;
+                    sons[sorteador]=sons[*n_max_de_sons];
+
+                    nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
+                    *verdade_momentanea=true;
+
+                    *tamanho=0;
             
-                resposta[0]='\0';
+                    resposta[0]='\0';
 
-
-                tela=5;
+                    tela=5;
+                }
             }
-
-
         }
 
+
+        
+
+        
         if(SO==2) {
-            if(IsKeyPressed(KEY_ENTER) && strncasecmp(resposta, nome_musicas[sorteador], *tamanho)==0) {
+            if(IsKeyPressed(KEY_ENTER)) {
+                if(strncasecmp(resposta, nome_musicas[sorteador], *tamanho)==0) {
+                    if(resposta[0]!='\0') {
 
-            tempo=reset_float(tempo, 30);
+                        tempo=reset_float(tempo, 45);
 
-            StopSound(sons[sorteador]);
+                        StopSound(sons[sorteador]);
 
-            sons[sorteador]=sons[*n_max_de_sons];
+                        sons[sorteador]=sons[*n_max_de_sons];
 
-            nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+                        nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
 
-            *verdade_momentanea=true;
+                        *verdade_momentanea=true;
 
-            *tamanho=0;
+                        *tamanho=0;
             
-            resposta[0]='\0';
+                        resposta[0]='\0';
 
+                        tela=6;  
+                    }
 
-            tela=6;
-
-            }
-
-            if(IsKeyPressed(KEY_ENTER) && strncasecmp(resposta, nome_musicas[sorteador], *tamanho)!=0) {
-
-                tempo=reset_float(tempo, 30);
-
-                StopSound(sons[sorteador]);
-
-                sons[sorteador]=sons[*n_max_de_sons];
-
-                nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
-
-                *verdade_momentanea=true;
-
-                *tamanho=0;
-            
-                resposta[0]='\0';
-
-
-                tela=5;
+                }
             }
 
 
+
+            if(IsKeyPressed(KEY_ENTER)) {
+                if(strncasecmp(resposta, nome_musicas[sorteador], *tamanho)!=0) {
+
+                    tempo=reset_float(tempo, 45);
+
+                    StopSound(sons[sorteador]);
+
+                    sons[sorteador]=sons[*n_max_de_sons];
+
+                    nome_musicas[sorteador]=nome_musicas[*n_max_de_sons];
+
+                    *verdade_momentanea=true;
+
+                    *tamanho=0;
+            
+                    resposta[0]='\0';
+
+
+                    tela=5;
+                }
+            }
         }
         
         if(tempo<=0) {
 
-            tempo=reset_float(tempo, 30);
+            tempo=reset_float(tempo, 45);
 
             StopSound(sons[sorteador]);
 
@@ -694,10 +716,70 @@ int main() {
         return tela;
     }
 
-    /*
-    int resultados() {
+    int resultados(Texture2D *classificacao, Sound final, int pontuacao, Texture2D background, float altura_som, bool *verdade_momentanea) {
 
-    }*/
+        int tamanho_txt=0;
+        char pontos[8];
+
+        DrawTexturePro(
+                background,
+                 (Rectangle){ 0, 0, (float)background.width, (float)background.height }, // Parte da imagem que será usada
+                 (Rectangle){ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, // Área da tela onde será desenhado
+                 (Vector2){ 0, 0 }, // Origem
+                 0.0f, // Rotação
+                 WHITE // Cor (sem alteração)
+            );
+            SetSoundVolume(final, altura_som);
+
+            if(*verdade_momentanea) {
+
+                PlaySound(final);
+                *verdade_momentanea=false;
+            }
+
+            if(!IsSoundPlaying(final)) {
+
+                PlaySound(final);
+            }
+            
+
+        if(pontuacao/MAX_MUSICAS==10) {
+
+            tamanho_txt=MeasureText("SEMIDEUS DA COMPUTA", 150);
+            sprintf(pontos, "%d", pontuacao);
+
+            DrawTexture(classificacao[0], SW/2-classificacao[0].width/2, SH/2-classificacao[0].height/2, WHITE);
+
+            
+            DrawText(pontos, (SW/2 - MeasureText(pontos,100)/2), SH/12, 100, GOLD );
+
+            DrawText("SEMIDEUS DA COMPUTA",SW/2-tamanho_txt/2 , 3*SH/4 , 150 , GOLD);
+        } else if(pontuacao/MAX_MUSICAS<10 && pontuacao/MAX_MUSICAS>5) {
+
+            tamanho_txt=MeasureText("MAGO DA COMPUTA", 150);
+            
+            sprintf(pontos, "%d", pontuacao);
+
+            DrawTexture(classificacao[1], SW/2-classificacao[1].width/2, SH/2-classificacao[1].height/2, WHITE);
+
+            DrawText(pontos, (SW/2 - MeasureText(pontos,100)/2), SH/12, 100, GOLD );
+
+            DrawText("MAGO DA COMPUTA",SW/2-tamanho_txt/2 , 3*SH/4 , 150 , GOLD);
+
+        } else {
+
+            tamanho_txt=MeasureText("TOICINHO", 150);
+            sprintf(pontos, "%d", pontuacao);
+
+            DrawTexture(classificacao[2], SW/2-classificacao[2].width/2, SH/2-classificacao[2].height/2, WHITE);
+
+            DrawText(pontos, (SW/2 - MeasureText(pontos,100)/2), SH/12, 100, GOLD );
+
+            DrawText("TOICINHO",SW/2-tamanho_txt/2 , 3*SH/4 , 150 , GOLD);
+        }
+
+        return 7;
+    }
 
     int reset_int(int variavel, int valor_certo) {
 
